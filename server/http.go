@@ -5,7 +5,7 @@ import (
 	"github.com/go-kratos/kratos/v2/middleware/recovery"
 	"github.com/go-kratos/kratos/v2/transport/http"
 	v1 "greeter/api/v1"
-	conf "greeter/configs"
+	"greeter/conf"
 	"greeter/internal/service"
 )
 
