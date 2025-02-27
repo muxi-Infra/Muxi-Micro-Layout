@@ -4,19 +4,10 @@ VERSION=$(shell git describe --tags --always)
 
 ifeq ($(GOHOSTOS), windows)
 	Git_Bash=$(subst \,/,$(subst cmd\,bin\bash.exe,$(dir $(shell where git))))
-	CONFIGS_PROTO_FILES=$(shell $(Git_Bash) -c "find conf -name *.proto")
 	API_PROTO_FILES=$(shell $(Git_Bash) -c "find api -name *.proto")
 else
-	CONFIGS_PROTO_FILES=$(shell find conf -name *.proto)
 	API_PROTO_FILES=$(shell find api -name *.proto)
 endif
-
-.PHONY: config
-config:
-	protoc --proto_path=./conf \
-           --proto_path=./third_party \
-     	   --go_out=paths=source_relative:./conf \
-    	   $(CONFIGS_PROTO_FILES)
 
 .PHONY: api
 api:
@@ -32,8 +23,3 @@ api:
 # wire
 wire:
 	wire
-
-.PHONY: run
-# run
-run:
-	kratos run
