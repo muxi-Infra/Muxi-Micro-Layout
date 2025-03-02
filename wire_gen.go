@@ -8,11 +8,11 @@ package main
 
 import (
 	"greeter/conf"
-	"greeter/internal"
 	"greeter/internal/biz"
 	"greeter/internal/data"
 	"greeter/internal/server"
 	"greeter/internal/service"
+	"greeter/pkg/logger"
 )
 
 import (
@@ -24,13 +24,13 @@ import (
 func InitApp() *App {
 	confServer := conf.NewServer()
 	confData := conf.NewData()
-	logger := internal.NewLogger()
-	dataData := data.NewData(confData, logger)
-	greeterRepo := data.NewGreeterRepo(dataData, logger)
-	greeterUsecase := biz.NewGreeterUsecase(greeterRepo, logger)
+	zapLogger := logger.NewZapLogger()
+	dataData := data.NewData(confData, zapLogger)
+	greeterRepo := data.NewGreeterRepo(dataData, zapLogger)
+	greeterUsecase := biz.NewGreeterUsecase(greeterRepo, zapLogger)
 	greeterService := service.NewGreeterService(greeterUsecase)
-	httpServer := server.NewHTTPServer(confServer, greeterService, logger)
-	grpcServer := server.NewGRPCServer(confServer, greeterService, logger)
+	httpServer := server.NewHTTPServer(confServer, greeterService, zapLogger)
+	grpcServer := server.NewGRPCServer(confServer, greeterService, zapLogger)
 	app := &App{
 		Http: httpServer,
 		Grpc: grpcServer,

@@ -2,8 +2,8 @@ package conf
 
 import (
 	"github.com/fsnotify/fsnotify"
-	"github.com/go-kratos/kratos/v2/log"
 	"github.com/spf13/viper"
+	log "greeter/pkg/logger"
 	"path"
 	"runtime"
 
@@ -12,8 +12,9 @@ import (
 )
 
 type Config struct {
-	conf Conf
+	conf *Conf
 	sync.RWMutex
+	log *log.ZapLogger
 }
 
 type MutexConf interface {
@@ -21,7 +22,7 @@ type MutexConf interface {
 	UpdateConfig(newConfig Conf)
 }
 
-func (cw *Config) GetConfig() Conf {
+func (cw *Config) GetConfig() *Conf {
 	cw.RLock()
 	defer cw.RUnlock()
 	return cw.conf
@@ -30,33 +31,34 @@ func (cw *Config) GetConfig() Conf {
 func (cw *Config) UpdateConfig(newConfig Conf) {
 	cw.Lock()
 	defer cw.Unlock()
-	cw.conf = newConfig
+	cw.conf = &newConfig
 }
 
-func NewConfig() (*Config, error) {
-	globalConfig := &Config{}
+// NewConfig 创建一个新的配置实例并进行初始化
+func NewConfig(log *log.ZapLogger) (*Config, error) {
+	globalConfig := &Config{log: log}
 
-	_, filename, _, _ := runtime.Caller(0) // 获取当前文件（config.go）路径
-	confPath := path.Dir(filename)         // 获取当前文件目录
-	viper.AddConfigPath(confPath)          // 设置配置文件目录
-	// fmt.Println("confPath:", confPath)
+	// 获取当前文件路径和目录
+	_, filename, _, _ := runtime.Caller(0)
+	confPath := path.Dir(filename)
+	viper.AddConfigPath(confPath)
 
-	// 初始化 Viper 配置
-	viper.SetConfigName("config") // 配置文件名
-	viper.SetConfigType("yaml")   // 配置文件类型
+	// 配置 viper 以读取配置文件
+	viper.SetConfigName("config")
+	viper.SetConfigType("yaml")
 
-	// 加载初始配置
+	// 读取配置文件
 	err := viper.ReadInConfig()
 	if err != nil {
-		log.Errorf("Error reading config file: %s", err)
+		globalConfig.log.Errorf("Error reading config file: %s", err)
 		return nil, err
 	}
 
-	// 解析初始配置到 Config
+	// 解析初始配置
 	var initialConf Conf
 	err = viper.Unmarshal(&initialConf)
 	if err != nil {
-		log.Errorf("Error unmarshalling config: %s", err)
+		globalConfig.log.Errorf("Error unmarshalling config: %s", err)
 		return nil, err
 	}
 	globalConfig.UpdateConfig(initialConf)
@@ -64,19 +66,20 @@ func NewConfig() (*Config, error) {
 	// 开启热更新监听
 	viper.WatchConfig()
 
-	// 在配置变更时触发的回调
+	// 配置文件变化时触发的回调
 	viper.OnConfigChange(func(e fsnotify.Event) {
 		go func() {
 			newConf := Conf{}
 			err := viper.Unmarshal(&newConf)
 			if err != nil {
-				log.Fatalf("Error unmarshalling updated config: %s", err)
+				globalConfig.log.Errorf("Error unmarshalling updated config: %s", err)
 				return
 			}
 			globalConfig.UpdateConfig(newConf)
-			log.Infof("Config updated successfully:%v\n", time.Now().Format("2006-01-02 15:04:05"))
+			globalConfig.log.Infof("Config updated successfully at %v", time.Now().Format("2006-01-02 15:04:05"))
 		}()
-		log.Infof("Config file changed:%v,time:%v\n", e.Name, time.Now().Format("2006-01-02 15:04:05"))
+		globalConfig.log.Infof("Config file changed: %v, time: %v", e.Name, time.Now().Format("2006-01-02 15:04:05"))
 	})
+
 	return globalConfig, nil
 }
