@@ -17,8 +17,7 @@ func InitApp() *App {
 		wire.Struct(new(App), "*"),
 		wire.Bind(new(log.Logger), new(*log.ZapLogger)), // 绑定接口和实现
 		log.NewZapLogger,
-		conf.NewData,
-		conf.NewServer,
+		conf.NewConf,
 		server.ProviderSet,
 		data.ProviderSet,
 		biz.ProviderSet,

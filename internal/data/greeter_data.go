@@ -14,7 +14,7 @@ type Data struct {
 }
 
 // NewData .
-func NewData(c *conf.Data, logger log.Logger) *Data {
+func NewData(c *conf.Conf, logger log.Logger) *Data {
 	return &Data{}
 }
 

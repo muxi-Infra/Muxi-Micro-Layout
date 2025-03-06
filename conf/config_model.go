@@ -7,10 +7,6 @@ type Conf struct {
 	Data   Data   `mapstructure:"data"`
 }
 
-func NewServer() *Server {
-	return &Server{}
-}
-
 type Server struct {
 	Http Web `mapstructure:"http"`
 	Grpc Web `mapstructure:"grpc"`
@@ -19,10 +15,6 @@ type Web struct {
 	// Network string        `mapstructure:"network"`
 	Addr    string        `mapstructure:"addr"`
 	Timeout time.Duration `mapstructure:"timeout"`
-}
-
-func NewData() *Data {
-	return &Data{}
 }
 
 type Data struct {

@@ -22,15 +22,14 @@ import (
 // Injectors from wire.go:
 
 func InitApp() *App {
-	confServer := conf.NewServer()
-	confData := conf.NewData()
+	confConf := conf.NewConf()
 	zapLogger := logger.NewZapLogger()
-	dataData := data.NewData(confData, zapLogger)
+	dataData := data.NewData(confConf, zapLogger)
 	greeterRepo := data.NewGreeterRepo(dataData, zapLogger)
 	greeterUsecase := biz.NewGreeterUsecase(greeterRepo, zapLogger)
 	greeterService := service.NewGreeterService(greeterUsecase)
-	httpServer := server.NewHTTPServer(confServer, greeterService, zapLogger)
-	grpcServer := server.NewGRPCServer(confServer, greeterService, zapLogger)
+	httpServer := server.NewHTTPServer(confConf, greeterService, zapLogger)
+	grpcServer := server.NewGRPCServer(confConf, greeterService, zapLogger)
 	app := &App{
 		Http: httpServer,
 		Grpc: grpcServer,
