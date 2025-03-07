@@ -12,12 +12,11 @@ import (
 	log "greeter/pkg/logger"
 )
 
-func InitApp() *App {
+func InitApp(c *conf.Conf) *App {
 	wire.Build(
 		wire.Struct(new(App), "*"),
-		wire.Bind(new(log.Logger), new(*log.ZapLogger)), // 绑定接口和实现
-		log.NewZapLogger,
-		conf.NewConf,
+		log.ProviderSet,
+		// conf.NewConf,
 		server.ProviderSet,
 		data.ProviderSet,
 		biz.ProviderSet,
